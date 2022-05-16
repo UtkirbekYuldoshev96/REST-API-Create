@@ -2,7 +2,7 @@ const http = require('http');
 const {v4} = require('uuid');
 const getBodydata = require('./util');
 // 
-const books = [
+let books = [
     {
         id: "1",
         title: 'Kitob nomi',
@@ -53,8 +53,36 @@ const server = http.createServer( async (req, res) => {
                 book
             }
             res.end(JSON.stringify(resp))
-        
-        // console.log(id)
+    }else if(req.url.match(/\/books\/\w+/) && req.method === 'PUT'){
+        const id = req.url.split('/')[2];
+        const data = await getBodydata(req)
+        const {title, pages, author } =  JSON.parse(data)
+        const idx = books.findIndex(b => b.id === id)
+        const changedBooks = {
+            id: books[idx].id,
+            title: title || books[idx].title,
+            pages: pages || books[idx].pages,
+            author: author || books[idx].author
+        }
+        books[idx] = changedBooks
+        res.writeHead(200, {
+            'Content-Type': 'application/json charset=utf8'
+        })
+        const resp = {
+            statust: "Okey",
+            book: changedBooks
+        }
+        res.end(JSON.stringify(resp))
+    }else if(req.url.match(/\/books\/\w+/) && req.method === 'DELETE'){
+        const id = req.url.split('/')[2];
+        books = books.filter(b => b.id !== id)
+        res.writeHead(200, {
+            'Content-Type': 'application/json charset=utf8'
+        })
+        const resp = {
+            statust: "DELETED"
+        }
+        res.end(JSON.stringify(resp))
     }
 })
 
